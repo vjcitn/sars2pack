@@ -4,7 +4,16 @@ library(yaml)
 yml = yaml.load_file(system.file(package='sars2pack', path='data_catalog/dataset_details.yaml'))
 dsets = yml$datasets
 
+skp = c("economist_excess_deaths", "google_search_trends_data", "apple_mobility_data",
+   "google_mobility_data", "cdc_us_linelist_data")
+skpe = c("cci_us_vaccine_data", "econ_tracker_employment_national_data") # error 28 Mar
+
+
 for(dset in names(dsets)) {
+  if (dset %in% c(skp, skpe)) next
+  print("===")
+  print(dset)
+  print("===")
                                         #if(dset=='apple_mobility_data') next ## skip for now
   accessor = get(dset)
   res = accessor()

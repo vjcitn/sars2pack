@@ -2,7 +2,7 @@ context("Plotting functions")
 
 jhu = jhu_data() %>% 
     filter(CountryRegion=='China' & subset=='confirmed') %>% 
-    group_by(CountryRegion,date) %>% summarize(count=sum(count))
+    group_by(CountryRegion,date) %>% dplyr::summarize(count=sum(count))
 
 test_that('plot_epicurve returns ggplot object', {
     grob = plot_epicurve(jhu)
