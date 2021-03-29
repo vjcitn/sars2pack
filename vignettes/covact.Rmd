@@ -87,4 +87,20 @@ ggplot(curhosp[which(curhosp$state %in% st4),], aes(
    x=date, y=actuals.hospitalBeds.currentUsageCovid, colour=state)) + geom_line(lwd=2) + scale_y_log10() +
   ylab("hospital beds in use with covid patients") + xlab("2021")
 ```
+
+We'll compute incidence of the 'deaths' data, and use loess smoothing.
+```{r doincd}
+curhosp_incd = curhosp[-1,]
+curhosp_incd$incd = diff(curhosp$actuals.deaths)
+ggplot(curhosp_incd[which(curhosp_incd$state %in% st4),], aes(
+   x=date, y=incd, colour=state)) + geom_smooth(lwd=2, span=.6) + 
+  ylab("incident covidactnow deaths") + xlab("2021") + ylim(0,150)
+```
+For big states, we need a different scale.
+```{r doinc2}
+st5 = c("NY", "CA", "TX")
+ggplot(curhosp_incd[which(curhosp_incd$state %in% st5),], aes(
+   x=date, y=incd, colour=state)) + geom_smooth(lwd=2, span=.33) + 
+  ylab("incident covidactnow deaths") + xlab("2021")
+```
  
