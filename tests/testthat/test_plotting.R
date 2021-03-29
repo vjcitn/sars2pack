@@ -1,4 +1,5 @@
 context("Plotting functions")
+library(dplyr)
 
 jhu = jhu_data() %>% 
     filter(CountryRegion=='China' & subset=='confirmed') %>% 

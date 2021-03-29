@@ -5,8 +5,11 @@ yml = yaml.load_file(system.file(package='sars2pack', path='data_catalog/dataset
 dsets = yml$datasets
 
 skp = c("economist_excess_deaths", "google_search_trends_data", "apple_mobility_data",
-   "google_mobility_data", "cdc_us_linelist_data")
-skpe = c("cci_us_vaccine_data", "econ_tracker_employment_national_data") # error 28 Mar
+   "google_mobility_data", "cdc_us_linelist_data") # too big
+skpe = c("cci_us_vaccine_data", "econ_tracker_employment_national_data",
+"econ_tracker_employment_city_data", "econ_tracker_employment_state_data",
+"econ_tracker_consumer_spending_national_data",
+"econ_tracker_employment_county_data")  # error 28 Mar
 
 
 for(dset in names(dsets)) {

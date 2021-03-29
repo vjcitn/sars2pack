@@ -33,7 +33,11 @@ library(dplyr)
 library(magrittr)
 library(DT)
 library(lubridate)
+library(ggplot2)
 })
+```
+The following code requires an API key.
+```{r showsum,eval=FALSE}
 cc = covact_states_data()
 dim(cc)
 n = names(cc)
@@ -43,8 +47,10 @@ narate21 = vapply(n, function(x) mean(is.na(cc21[[x]])), numeric(1))
 ```
 The following table enumerates available variables, overall
 proportion of records missing, and proportion records missing for observations in 2021.
+This is based on a snapshot, 28 March 2021.
 ```{r lkna}
-datatable(data.frame(vbl=n, pctna=100*round(narate,2), pctna_21=100*round(narate21,2)))
+data(covact_vbls)
+datatable(covact_vbls)
 ```
 
 # Example: identifying 2021 reversals
@@ -57,8 +63,12 @@ time of the mean value of COVID-based
 hospital beds in use, as reported by covidactnow.org, confining attention
 to observations in 2021.
 
+The following code would require an API key to be present
+if `cc` were to be used.  We use instead a snapshot made 28 March 2021.
 ```{r dolm}
-curhosp = filter(cc, date>="2021-01-01")
+# curhosp = filter(cc, date>="2021-01-01")
+data(covact_st) # snapshot
+curhosp = dplyr::filter(covact_st, date >= "2021-01-01")
 curhosp$days = curhosp$date - as_date("2021-01-01")
 curhosp$ndays = as.numeric(curhosp$days)
 lm2 = lm( actuals.hospitalBeds.currentUsageCovid ~poly(ndays,2)*factor(state), data=curhosp) 
@@ -68,194 +78,13 @@ qeff = myco[inds,]
 options(digits=3)
 head(qeff[order(abs(qeff[, "t value"]), decreasing=TRUE),],10)
 ```
+Here we plot trajectories of reported hospital bed usage for COVID-19
+patients as reported by covidactnow.org.
 
 ```{r newf}
-pl_hosp = function(st="MI", ...) { #ylim=c(500,7000), log="y") {
-  plot(
-   actuals.hospitalBeds.currentUsageCovid~date, data=curhosp[curhosp$state==st,], ...)
-}
-pl_hosp(st="MI", ylim=c(500, 7000), log="y")
+st4 = c("PA","MI", "OH", "TN", "IL", "IN", "NJ", "MN")
+ggplot(curhosp[which(curhosp$state %in% st4),], aes(
+   x=date, y=actuals.hospitalBeds.currentUsageCovid, colour=state)) + geom_line(lwd=2) + scale_y_log10() +
+  ylab("hospital beds in use with covid patients") + xlab("2021")
 ```
  
-
-
-<!--
-dim(cc)
-names(cc)
-make_cumulative_events
-library(dplyr)
-library(magrittr)
-ma = 
-cc %>% filter(state=="MA")
-plot(ma$date, ma$metrics.testPositivityRatio)
-with(ma, plot(metrics.testPositivityRatio~date, subset=date>="2020-09-01"))
-with(ma, plot(metrics.icuCapacityRatio~date, subset=date>="2020-04-01"))
-with(ma, plot(actuals.icuBeds.currentUsageCovid~date, subset=date>="2020-04-01"))
-mi = cc %>% filter(state=="MI")
-with(mi, plot(actuals.icuBeds.currentUsageCovid~date, subset=date>="2020-04-01"))
-pa = cc %>% filter(state=="PA")
-with(pa, plot(actuals.icuBeds.currentUsageCovid~date, subset=date>="2020-04-01"))
-library(sars2app)
-BiocManager::install(c("rmeta", "runner"))
-library(sars2app)
-tsapp()
-tsapp()
-ny = cc %>% filter(state=="NY")
-nj = cc %>% filter(state=="NJ")
-with(ny, plot(actuals.icuBeds.currentUsageCovid~date, subset=date>="2020-04-01"))
-with(nj, plot(actuals.icuBeds.currentUsageCovid~date, subset=date>="2020-04-01"))
-with(ma, plot(actuals.icuBeds.currentUsageCovid~date, subset=date>="2020-04-01"))
-with(mi, plot(actuals.icuBeds.currentUsageCovid~date, subset=date>="2020-04-01"))
-names(cc)
-with(mi, plot(actuals.icuBeds.typicalUsageRate~date, subset=date>="2020-04-01"))
-with(ma, plot(actuals.icuBeds.typicalUsageRate~date, subset=date>="2020-04-01"))
-ma$actuals.icuBeds.typicalUsageRate
-with(mi, plot(actuals.hospitalBeds.typicalUsageRate~date, subset=date>="2020-04-01"))
-with(mi, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2020-04-01"))
-tx = cc %>% filter(state=="TX")
-ca = cc %>% filter(state=="CA")
-with(tx, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2020-04-01"))
-with(ca, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2020-04-01"))
-with(ca, plot(actuals.icuBeds.currentUsageCovid~date, subset=date>="2020-04-01"))
-with(tx, plot(actuals.icuBeds.currentUsageCovid~date, subset=date>="2020-04-01"))
-with(ma, plot(actuals.icuBeds.currentUsageCovid~date, subset=date>="2020-04-01"))
-with(ma, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2020-04-01"))
-with(ma, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01"))
-with(ma, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(0,2000)))
-with(mi, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(0,2000)))
-with(mi, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(0,4000)))
-with(pa, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(0,4000)))
-with(pa, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(1,4000), log="y"))
-with(mi, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(1,4000), log="y"))
-with(mi, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(500,4000), log="y"))
-with(mi, plot(actuals.icuBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(500,4000), log="y"))
-with(mi, plot(actuals.icuBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,1000), log="y"))
-with(ma, plot(actuals.icuBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,1000), log="y"))
-with(pa, plot(actuals.icuBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,1000), log="y"))
-with(ny, plot(actuals.icuBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,1000), log="y"))
-with(ny, plot(actuals.icuBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,2000), log="y"))
-with(pa, plot(actuals.icuBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,1000), log="y"))
-with(pa, plot(actuals.icuBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,2000), log="y"))
-with(mi, plot(actuals.icuBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,2000), log="y"))
-with(nj, plot(actuals.icuBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,2000), log="y"))
-with(nj, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,2000), log="y"))
-with(nj, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,4000), log="y"))
-with(ny, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,4000), log="y"))
-with(ny, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,8000), log="y"))
-with(mi, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,8000), log="y"))
-ga = cc %>% filter(state=="GA")
-fl = cc %>% filter(state=="FL")
-with(ga, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,8000), log="y"))
-with(fl, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,8000), log="y"))
-ca
-with(ca, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,8000), log="y"))
-curhosp = filter(cotab, dat>="2020-01-01")
-ls()
-curhosp = filter(cc, dat>="2020-01-01")
-curhosp = filter(cc, date>="2020-01-01")
-lm( actuals.hospitalBeds.currentUsageCovid ~ date*factor(state), data=curhosp) -> lm1
-summary(lm1)
-with(tx, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,8000), log="y"))
-lm( actuals.hospitalBeds.currentUsageCovid ~ date*factor(state)-1, data=curhosp) -> lm2
-summary(lm2)
-lm( actuals.hospitalBeds.currentUsageCovid ~ I(date^2)*factor(state)-1, data=curhosp) -> lm2
-lm( actuals.hospitalBeds.currentUsageCovid ~factor(state)*date^2-1, data=curhosp) -> lm2
-summary(lm2)
-lm( actuals.hospitalBeds.currentUsageCovid ~factor(state)*date^2, data=curhosp) -> lm2
-summary(lm2)
-lm( actuals.hospitalBeds.currentUsageCovid ~date^2, data=curhosp) -> lm2
-summary(lm2)
-curhosp$days = as.numeric(curhosp$date)- as_date("2021-01-01")
-library(lubridate)
-curhosp$days = as.numeric(curhosp$date)- as_date("2021-01-01")
-curhosp$days = curhosp$date- as_date("2021-01-01")
-summary(curhosp$days)
-curhosp$ndays = as.numeric(curhosp$days)
-summary(curhosp$ndays)
-curhosp = filter(cotab, dat>="2021-01-01")
-curhosp = filter(cc, dat>="2021-01-01")
-curhosp = filter(cc, date>="2021-01-01")
-curhosp$days = curhosp$date- as_date("2021-01-01")
-curhosp$ndays = as.numeric(curhosp$days)
-summary(curhosp$ndays)
-lm( actuals.hospitalBeds.currentUsageCovid ~ndays^2, data=curhosp) -> lm2
-summary(lm2)
-lm( actuals.hospitalBeds.currentUsageCovid ~ndays*ndays, data=curhosp) -> lm2
-summary(lm2)
-lm( actuals.hospitalBeds.currentUsageCovid ~ndays:ndays, data=curhosp) -> lm2
-summary(lm2)
-lm( actuals.hospitalBeds.currentUsageCovid ~ndays*factor(state), data=curhosp) -> lm2
-summary(lm2)
-lm( actuals.hospitalBeds.currentUsageCovid ~poly(ndays,2)*factor(state), data=curhosp) -> lm2
-summary(lm2)
-with(pa, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,8000), log="y"))
-wv = filter(curhosp, state=="WV")
-with(wv, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,8000), log="y"))
-with(tx, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,8000), log="y"))
-nj = filter(curhosp, state=="NJ")
-with(nj, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,8000), log="y"))
-with(tx, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,12000), log="y"))
-mi = filter(curhosp, state=="MI")
-with(mi, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,12000), log="y"))
-summary(lm2)$coef -> myco
-rownames(myco)
-inds = grep("2:factor", rownames(myco))
-myco[inds,]
-myco[inds,] -> qeff
-qeff[order(abs(qeff$`t value`), decreasing=TRUE),][1:10,]
-dim(qeff)
-class(qeff)
-qeff[order(abs(qeff[, "t value"]), decreasing=TRUE),][1:10,]
-with(ca, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,12000), log="y"))
-with(pa, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,12000), log="y"))
-tn = filter(curhosp, state=="TN")
-oh = filter(curhosp, state=="OH")
-il = filter(curhosp, state=="IL")
-in = filter(curhosp, state=="IN")
-ind = filter(curhosp, state=="IN")
-with(oh, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,12000), log="y"))
-plot(predict(lm2, newdata=oh))
-plot(predict(lm2, newdata=il))
-with(oh, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,12000), log="y"))
-with(tn, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,12000), log="y"))
-with(ind, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,12000), log="y"))
-with(ind, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,3000), log="y"))
-with(ioh, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,3000), log="y"))
-with(oh, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,3000), log="y"))
-with(oh, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,4000), log="y"))
-with(mi, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,4000), log="y"))
-myco
-qeff[order(abs(qeff[, "t value"]), decreasing=TRUE),][1:15,]
-with(ny, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(100,24000), log="y"))
-with(ny, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(4000,15000), log="y"))
-with(tx, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(4000,15000), log="y"))
-with(pa, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(4000,15000), log="y"))
-with(pa, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(400,15000), log="y"))
-with(pa, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(1500,7000), log="y"))
-with(mi, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(1500,7000), log="y"))
-with(mi, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(500,7000), log="y"))
-with(mi, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(700,7000), log="y"))
-with(pa, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(700,7000), log="y"))
-with(oh, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(700,7000), log="y"))
-with(tn, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(700,7000), log="y"))
-with(il, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(700,7000), log="y"))
-with(ca, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(700,17000), log="y"))
-with(ca, plot(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", ylim=c(700,27000), log="y"))
-linca = lm(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", data=ca)
-plot(linca)
-dim(ca)
-ca = filter(cc, state=="CA" & date >= "2021-01-01")
-linca = lm(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", data=ca)
-plot(linca)
-options(mfrow=c(2,2))
-plot(linca)
-linca
-linca = lm(actuals.hospitalBeds.currentUsageCovid~date, subset=date>="2021-01-01", data=ca)
-dim(ca)
-summary(linca)
-plot(ca$date, ca$actuals.hospitalBeds.currentUsageCovid)
-par(mfrow=c(2,2))
-plot(linca)
-plot(resid(linca))
-savehistory(file="lklin.hist.txt")
--->

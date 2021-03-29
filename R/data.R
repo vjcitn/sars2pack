@@ -50,3 +50,14 @@
 #' @docType data
 #' @format S3 instance
 "min_bic_2020_05_20"
+
+
+#' covactnow state-level snapshot
+#' @docType data
+#' @format data.frame
+"covact_st"
+
+#' covactnow state-level snapshot, data variable summary
+#' @docType data
+#' @format data.frame
+"covact_vbls"
